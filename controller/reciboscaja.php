@@ -24,9 +24,9 @@ class reciboscaja extends fs_controller {
     protected $caja;
 
     /**
-     * @var recibo_cliente[]
+     * @var pago_por_caja[]
      */
-    protected $recibos;
+    protected $pagos;
 
     /**
      * @var forma_pago
@@ -69,9 +69,9 @@ class reciboscaja extends fs_controller {
 
         $this->caja = caja::get($this->idcaja);
         if ($this->caja) {
-            $this->recibos = $this->caja->findRecibos();
+            $this->pagos = $this->caja->findPagos();
         } else { 
-            $this->recibos = array();
+            $this->pagos = array();
         }
 
     }
@@ -89,10 +89,10 @@ class reciboscaja extends fs_controller {
     }
 
     /**
-     * @return recibo_cliente[]
+     * @return pago_por_caja[]
      */
-    public function getRecibos() {
-        return $this->recibos;
+    public function getPagos() {
+        return $this->pagos;
     }
 
     /**
@@ -109,9 +109,17 @@ class reciboscaja extends fs_controller {
     public function getTotal(forma_pago $forma_pago) {
         $total = 0.0;
 
-        foreach ($this->getRecibos() as $recibo_cliente) {
-            if($forma_pago->codpago == $recibo_cliente->codpago) {
-                $total += (float) $recibo_cliente->importe;
+        foreach ($this->getPagos() as $pago) {
+            $factura = $pago->getFactura();
+            $recibo = $pago->getReciboCliente();
+            if($recibo) {
+                if($forma_pago->codpago === $recibo->codpago) {
+                    $total += (float) $recibo->importe;
+                }
+            } else {
+                if($forma_pago->codpago === $factura->codpago) {
+                    $total += (float) $factura->total;
+                }
             }
         }
 

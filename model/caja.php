@@ -90,9 +90,19 @@ class caja extends fs_model {
     private static $agentes;
 
     /**
-     * @var facturascli_por_caja
+     * @var factura_cliente[]
      */
     protected $facturas;
+
+    /**
+     * @var recibo_cliente[]
+     */
+    protected $recibos;
+
+    /**
+     * @var pago_por_caja[]
+     */
+    protected $pagos;
 
     /**
      * @var int
@@ -223,14 +233,27 @@ class caja extends fs_model {
      */
     public function is_usable() {
         $info = conf_caja::get_info();
-        $dateStart = DateTime::createFromFormat('H:i:s', $info->getStartTime());
-        $dateEnd = DateTime::createFromFormat('H:i:s', $info->getEndTime());
-        $date2 = (new DateTime('NOW'));
-        
-        if($date2 > $dateEnd && $dateStart < $dateEnd) {
-            return false;
-        } else {
+        $confDateStart =  DateTime::createFromFormat('H:i:s', $info->getStartTime());
+        $confDateEnd = DateTime::createFromFormat('H:i:s', $info->getEndTime());
+        $cajaStart = DateTime::createFromFormat('d-m-Y H:i:s', $this->fecha_inicial);
+        $now = new DateTime();
+
+        if($confDateEnd < $confDateStart && $now > $confDateEnd) {
+            // Si la hora de fin es menor a la hora de apertura y ahora es mayor a la hora de cierre le agrego un día
+            // de esa forma siempre va a fallar cuando se cambie el día al siguente
+            // por ejemplo $confDateStart = 6PM $confDateEnd = 7AM y $now = 8PM
+        	$confDateEnd->modify("+1 day");
+        } elseif ($now < $confDateStart) {
+            // En cambio si la hora de apertura de caja no ocurrio todavía es porque la configuracion cambia de día
+            // y el start en realidad es de ayer
+            // por ejemplo $confDateStart = 6PM $confDateEnd = 7AM y $now = 3AM
+            $confDateStart->modify("-1 day");
+        }
+
+        if($cajaStart > $confDateStart && $cajaStart < $confDateEnd) {
             return true;
+        } else {
+        	return false;
         }
     }
 
@@ -345,11 +368,22 @@ class caja extends fs_model {
      * @return recibo_cliente[]
      */
     public function findRecibos() {
-        if (!$this->facturas) {
-            $this->facturas = $this->get_recibos($this->id);
+        if (!$this->recibos) {
+            $this->recibos = $this->get_recibos($this->id);
         }
 
-        return $this->facturas;
+        return $this->recibos;
+    }
+
+    /**
+     * @return pago_por_caja[]
+     */
+    public function findPagos() {
+        if (!$this->pagos) {
+            $this->pagos= $this->get_pagos($this->id);
+        }
+
+        return $this->pagos;
     }
 
     public function test() {
@@ -500,6 +534,18 @@ class caja extends fs_model {
             $idcaja = $this->id;
         }
         return pago_por_caja::getRecibosByCaja($idcaja);
+    }
+
+    /**
+     * @param int $idcaja
+     *
+     * @return pago_por_caja[]
+     */
+    public function get_pagos($idcaja = 0) {
+        if(!$idcaja && $this->id) {
+            $idcaja = $this->id;
+        }
+        return pago_por_caja::getPagosByCaja($idcaja);
     }
 
 }
