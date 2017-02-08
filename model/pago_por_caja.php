@@ -489,13 +489,14 @@ class pago_por_caja extends fs_model {
      * @return boolean
      */
     public static function save_recibo(caja $caja, recibo_cliente $recibo_cliente) {
-        //Si el recibo ya está en alguna caja no guardarlo de nuevo
-        if(self::getByCajaYRecibo($caja, $recibo_cliente)) {
-            return true;
-        }
-
         //Obtenemos la factura
         $factura = $recibo_cliente->getFactura();
+
+        //Si el recibo ya está en alguna caja no guardarlo de nuevo
+        //Si la factura ya está marcada como paga no guardar el recibo en una caja
+        if($factura->pagada || self::getByCajaYRecibo($caja, $recibo_cliente)) {
+            return true;
+        }
 
         //Si el saldo de la factura es pagado por el valor de este recibo
         if($recibo_cliente->importe >= $factura->getSaldo()) {
@@ -673,8 +674,11 @@ class pago_por_caja extends fs_model {
      */
     private function fetchRecibosByFactura($id_factura_cliente) {
         $recibos = array();
-        foreach($this->fetchAllByFactura($id_factura_cliente) as $pago_por_caja) {
-            $recibos[] = $pago_por_caja->getReciboCliente();
+        $pagos = $this->fetchAllByFactura($id_factura_cliente);
+        if ($pagos) {
+            foreach($pagos as $pago_por_caja) {
+                $recibos[] = $pago_por_caja->getReciboCliente();
+            }
         }
         return $recibos;
     }
