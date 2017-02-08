@@ -518,8 +518,13 @@ class pago_por_caja extends fs_model {
             ));
             //Sumo el total de la factura a la caja
             $ret = $ret && $obj->save() && $caja->sumar_importe($factura->total);
+            //Le pongo la fecha y hora de cuando se está pagando
+            $factura->fecha = date('d-m-Y');
+            $factura->hora = date('h:i:s');
             //Marco la factura como pagada
             $factura->pagada = true;
+            //Le cambio la forma de pago al recibo que obtuve
+            $factura->codpago = $recibo_cliente->codpago;
             $ret = $ret && $factura->save();
         } else {
             //El sando no alcanza para pagar el saldo

@@ -29,6 +29,16 @@ class reciboscaja extends fs_controller {
     protected $pagos;
 
     /**
+     * @var pago_por_caja[]
+     */
+    protected $ingresos;
+
+    /**
+     * @var pago_por_caja[]
+     */
+    protected $egresos;
+
+    /**
      * @var forma_pago
      */
     protected $forma_pago;
@@ -37,6 +47,11 @@ class reciboscaja extends fs_controller {
      * @var bool
      */
     public $allow_delete;
+
+    protected $fecha = null;
+
+    const DATE_FORMAT = 'd-m-Y';
+    const DATE_FORMAT_FULL = 'd-m-Y H:i:s';
 
     public function __construct() {
         parent::__construct(__CLASS__, 'Listado de Facturas', 'tpv', true, false);
@@ -70,6 +85,20 @@ class reciboscaja extends fs_controller {
         $this->caja = caja::get($this->idcaja);
         if ($this->caja) {
             $this->pagos = $this->caja->findPagos();
+            $this->ingresos = array();
+            $this->egresos = array();
+            foreach ($this->pagos as $pago) {
+                if($pago->getIdRecibo()) {
+                    $importe = $pago->getReciboCliente()->importe;
+                    if($importe < 0) {
+                        $this->egresos[] = $pago;
+                    } else {
+                        $this->ingresos[] = $pago;
+                    }
+                } else {
+                    $this->ingresos[] = $pago;
+                }
+            }
         } else { 
             $this->pagos = array();
         }
@@ -96,10 +125,56 @@ class reciboscaja extends fs_controller {
     }
 
     /**
+     * @return pago_por_caja[]
+     */
+    public function getIngresos() {
+        return $this->ingresos;
+    }
+
+    /**
+     * @return pago_por_caja[]
+     */
+    public function getEgresos() {
+        return $this->egresos;
+    }
+
+    /**
      * @return forma_pago
      */
     public function getFormaPago() {
         return $this->forma_pago;
+    }
+
+    public function getTotalIngresos() {
+        $total = 0.0;
+
+        foreach ($this->getIngresos() as $pago) {
+            if($pago->getIdRecibo()) {
+                $recibo = $pago->getReciboCliente();
+                $total += (float) $recibo->importe;
+            } else {
+                $factura = $pago->getFactura();
+                $total += (float) $factura->total;
+            }
+        }
+
+        return $total;
+    }
+
+    public function getTotalEgresos() {
+        $total = 0.0;
+
+        foreach ($this->getEgresos() as $pago) {
+            if($pago->getIdRecibo()) {
+                $recibo = $pago->getReciboCliente();
+                $total += (float) $recibo->importe;
+            } else {
+                $factura = $pago->getFactura();
+                $total += (float) $factura->total;
+            }
+        }
+
+        return $total;
     }
 
     /**
@@ -110,13 +185,13 @@ class reciboscaja extends fs_controller {
         $total = 0.0;
 
         foreach ($this->getPagos() as $pago) {
-            $factura = $pago->getFactura();
-            $recibo = $pago->getReciboCliente();
-            if($recibo) {
+            if($pago->getIdRecibo()) {
+                $recibo = $pago->getReciboCliente();
                 if($forma_pago->codpago === $recibo->codpago) {
                     $total += (float) $recibo->importe;
                 }
             } else {
+                $factura = $pago->getFactura();
                 if($forma_pago->codpago === $factura->codpago) {
                     $total += (float) $factura->total;
                 }
@@ -125,5 +200,24 @@ class reciboscaja extends fs_controller {
 
         return $total;
     }
+
+    /**
+     * @return string
+     */
+    public function getFecha($full_date = false) {
+        if(!$this->fecha) {
+            $this->fecha = new DateTime();
+        } elseif(is_string($this->fecha)) {
+            $this->fecha = new DateTime($this->fecha);
+        }
+
+        $format = self::DATE_FORMAT;
+        if($full_date) {
+            $format = self::DATE_FORMAT_FULL;
+        }
+
+        return $this->fecha->format($format);
+    }
+
 
 }

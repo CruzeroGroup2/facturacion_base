@@ -45,6 +45,16 @@ class caja extends fs_model {
     public $codagente;
 
     /**
+     * @var int
+     */
+    public $idconf_caja;
+
+    /**
+     * @var conf_caja
+     */
+    protected $conf_caja;
+
+    /**
      * Fecha de apertura (inicio) de la caja.
      * @var string
      */
@@ -157,6 +167,7 @@ class caja extends fs_model {
         $this->codagente = isset($data['codagente']) ? $data['codagente'] : null;
         $this->tickets = isset($data['tickets']) ? intval($data['tickets']) : 0;
         $this->ip = isset($data['ip']) ? $data['ip'] : null;
+        $this->idconf_caja = isset($data['idconf_caja']) ? (int) $data['idconf_caja'] : null;
         $this->idasiento = isset($data['idasiento']) ? intval($data['idasiento']) : null;
 
         if (isset($_SERVER['REMOTE_ADDR'])) {
@@ -185,6 +196,51 @@ class caja extends fs_model {
     public function setEdit($edit = true) {
         $this->edit = $edit;
     }
+
+    /**
+     * @return int
+     */
+    public function getIdConfCaja()
+    {
+        return $this->idconf_caja;
+    }
+
+    /**
+     * @param int $idconf_caja
+     *
+     * @return caja
+     */
+    public function setIdConfCaja($idconf_caja)
+    {
+        $this->idconf_caja = $idconf_caja;
+
+        return $this;
+    }
+
+    /**
+     * @return conf_caja
+     */
+    public function getConfCaja()
+    {
+        if (!$this->conf_caja && $this->idconf_caja) {
+            $this->conf_caja = $this->get_conf_caja($this->idconf_caja);
+        }
+        return $this->conf_caja;
+    }
+
+    /**
+     * @param conf_caja $conf_caja
+     *
+     * @return caja
+     */
+    public function setConfCaja(conf_caja $conf_caja)
+    {
+        $this->conf_caja = $conf_caja;
+        $this->idconf_caja = $conf_caja->getId();
+        return $this;
+    }
+
+
 
     /**
      * @return int
@@ -394,6 +450,10 @@ class caja extends fs_model {
             $this->new_error_msg("Imposible agregar una nueva caja cuando hay una abierta");
         }
 
+        if (!$this->getIdConfCaja()) {
+            $this->new_error_msg("La caja no tiene una asignacion del turno en el que fue abierta");
+        }
+
 
         if (!$this->get_errors()) {
             $status = true;
@@ -413,6 +473,7 @@ class caja extends fs_model {
                'd_fin = ' . $this->var2str($this->dinero_fin) . ',' .
                'tickets = ' . $this->var2str($this->tickets) . ',' .
                'ip = ' . $this->var2str($this->ip) . ',' .
+               'idconf_caja = ' . $this->var2str($this->getIdConfCaja()) . ',' .
                'idasiento = ' . $this->var2str($this->getIdAsiento()) .
                ';';
         return $this->db->exec($sql);
@@ -429,6 +490,7 @@ class caja extends fs_model {
                    'f_fin = ' . $this->var2str($this->fecha_fin) . ',' .
                    'd_fin = ' . $this->var2str($this->dinero_fin) . ',' .
                    'tickets = ' . $this->var2str($this->tickets) . ',' .
+                   'idconf_caja = ' . $this->var2str($this->getIdConfCaja()) . ',' .
                    'idasiento = ' . $this->var2str($this->getIdAsiento()) .
                ' WHERE id = ' . $this->var2str($this->id) .
                ';';
@@ -442,15 +504,11 @@ class caja extends fs_model {
         if ($this->test()) {
             $this->clean_cache();
             if ($this->exists()) {
-                $this->update();
+                $ret = $this->update();
             } else {
-                $this->insert();
+                $ret = $this->insert();
                 $this->id = (int) $this->db->lastval();
             }
-        }
-
-        if (!$this->get_errors()) {
-            $ret = true;
         }
 
         return $ret;
@@ -546,6 +604,10 @@ class caja extends fs_model {
             $idcaja = $this->id;
         }
         return pago_por_caja::getPagosByCaja($idcaja);
+    }
+
+    public function get_conf_caja($idconf_caja = 0) {
+        return conf_caja::get($idconf_caja);
     }
 
 }
