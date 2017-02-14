@@ -54,10 +54,10 @@
          <h2 style="margin-top: 0px; margin-left:0px">Asientos</h2>
       </div>
 	  <div class="col-sm-2 col-xs-6 text-left">
-        <input type="text" name="desde"  class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" placeholder="Desde"/> 
+        <input type="text" name="desde" onClick="blur()"  class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" placeholder="Desde"/> 
       </div>
 	  <div class="col-sm-2 col-xs-6 text-left">
-        <input type="text" name="hasta"  class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" placeholder="Hasta"/> 
+        <input type="text" name="hasta" onClick="blur()"   class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" placeholder="Hasta"/> 
       </div>
 	   <div class="col-sm-2 col-xs-4">
 	   
@@ -78,12 +78,12 @@
    </div>
 </div>
 
-{if="$fsc->query!=''"}
+{if="$fsc->query!='' || ($fsc->desde && $fsc->hasta)"}
 <ul class="nav nav-tabs" role="tablist">
    <li class="active">
       <a href="#">
          <span class="glyphicon glyphicon-search"></span>
-         <span class="hidden-xs">&nbsp; Resultados de "{$fsc->query}"</span>
+         <span class="hidden-xs">&nbsp; Todos (Mayorizados y No Mayorizados)</span>
       </a>
    </li>
 </ul>

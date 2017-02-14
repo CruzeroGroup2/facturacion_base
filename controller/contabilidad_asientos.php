@@ -42,10 +42,19 @@ class contabilidad_asientos extends fs_controller
 	    $this->desde = $_POST['desde'];
 		if(!preg_match('/^([0-9]{1,2})-([0-9]{1,2})-([0-9]{4})$/i',$this->desde) ) $this->desde ="99";
 		}
-	 
+	 if(isset($_GET['desde']))
+	   {
+	    $this->desde = $_GET['desde'];
+		if(!preg_match('/^([0-9]{1,2})-([0-9]{1,2})-([0-9]{4})$/i',$this->desde) ) $this->desde ="99";
+		}
 	  	if(isset($_POST['hasta']))
 	   {
 	    $this->hasta = $_POST['hasta'];
+		if(!preg_match('/^([0-9]{1,2})-([0-9]{1,2})-([0-9]{4})$/i',$this->hasta) ) $this->hasta ="99";
+		} 
+		if(isset($_GET['hasta']))
+	   {
+	    $this->hasta = $_GET['hasta'];
 		if(!preg_match('/^([0-9]{1,2})-([0-9]{1,2})-([0-9]{4})$/i',$this->hasta) ) $this->hasta ="99";
 		}
 	 
@@ -104,11 +113,11 @@ class contabilidad_asientos extends fs_controller
 	  {
 			  if($this->query != '' AND $this->offset > 0)
 			  {
-				 $url = $this->url()."&query=".$this->query."&offset=".($this->offset-FS_ITEM_LIMIT);
+				 $url = $this->url()."&query=".$this->query."&desde=".$this->desde."&hasta=".$this->hasta."&offset=".($this->offset-FS_ITEM_LIMIT);
 			  }
 			  else if($this->query == '' AND $this->offset > 0)
 			  {
-				 $url = $this->url()."&offset=".($this->offset-FS_ITEM_LIMIT);
+				 $url = $this->url()."&desde=".$this->desde."&hasta=".$this->hasta."&offset=".($this->offset-FS_ITEM_LIMIT);
 			  }
       }
       else if( isset($_GET['descuadrados']) )
@@ -117,7 +126,7 @@ class contabilidad_asientos extends fs_controller
 	  		{
 			  if($this->query != '' AND $this->offset > 0)
 			  {
-				 $url = $this->url()."&query=".$this->query."&offset=".($this->offset-FS_ITEM_LIMIT).'&descuadrados=TRUE';
+				 $url = $this->url()."&query=".$this->query."&mayorizados=true&offset=".($this->offset-FS_ITEM_LIMIT).'&descuadrados=TRUE';
 			  }
 			  else if($this->query == '' AND $this->offset > 0)
 			  {
@@ -151,11 +160,11 @@ class contabilidad_asientos extends fs_controller
 	  $this->solapa='all';
 			  if($this->query != '' AND count($this->resultados) == FS_ITEM_LIMIT)
 			  {
-				 $url = $this->url()."&query=".$this->query."&offset=".($this->offset+FS_ITEM_LIMIT);
+				 $url = $this->url()."&query=".$this->query."&desde=".$this->desde."&hasta=".$this->hasta."&offset=".($this->offset+FS_ITEM_LIMIT);
 			  }
 			  else if($this->query == '' AND count($this->resultados) == FS_ITEM_LIMIT)
 			  {
-				 $url = $this->url()."&offset=".($this->offset+FS_ITEM_LIMIT);
+				 $url = $this->url()."&desde=".$this->desde."&hasta=".$this->hasta."&offset=".($this->offset+FS_ITEM_LIMIT);
 			  }
       } 
 	  else if( isset($_GET['descuadrados']) )

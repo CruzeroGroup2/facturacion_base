@@ -22,6 +22,8 @@ require_model('proveedor.php');
 require_model('ejercicio.php');
 require_model('orden_prov');
 require_model('anticipos_proveedor.php');
+require_model('recibo_proveedor.php');
+require_model('rec_ant_subc.php');
 /**
  * Esta clase permite genera un asiento a partir de una factura.
  *
@@ -384,13 +386,23 @@ class asiento_factura
 	  $varorden = new orden_prov();
 	  $orden =  $varorden->get($id);
 	  $varanticipo = new anticipos_proveedor();
+	  $recibo = new recibo_proveedor();
+	  $subcuenta_recargo = new rec_ant_subc();
 //	  $anticipo =  $varanticipo->get($id);
+		$this->importe_orden = 0;
+		$this->recargo = 0;
 		$this->importe_anticipo = 0;
 		
 		$eje0 = $this->ejercicio->get_by_fecha($orden->fecha);
 	   if( $eje0 ) 
 	   {
 					$orden->codejercicio = $eje0->codejercicio;	
+					
+				  foreach($recibo->get_por_idorden($id) as $valord)
+						{
+						$this->importe_orden += $valord->importe;
+						$this->recargo += $valord->recargo;
+						}
 						
 				  foreach($varanticipo->get_anticipo_idorden($id) as $valant)
 						{
@@ -436,7 +448,7 @@ class asiento_factura
 					 $asiento->importe = $orden->importepagar - $this->importe_anticipo;
 					 $asiento->tipodocumento = "Egreso proveedor";
 				 
-					 if( $asiento->save() )
+					 if( $asiento->save() ) //
 					 {
 						$asiento_correcto = TRUE;
 						$subcuenta = new subcuenta();
@@ -445,8 +457,8 @@ class asiento_factura
 						$partida0->concepto = $asiento->concepto;
 						$partida0->idsubcuenta = $subcuenta_prov->idsubcuenta;
 						$partida0->codsubcuenta = $subcuenta_prov->codsubcuenta;
-			///////////  Proveedor  debe			/////////
-						$partida0->debe = $orden->importepagar;
+			///////////  Proveedor  debe			/////////   subcuenta proveedor
+						$partida0->debe = $this->importe_orden;
 						$partida0->coddivisa = 0;
 						$partida0->tasaconv = 0;
 						$partida0->codserie = 0;
@@ -455,18 +467,45 @@ class asiento_factura
 						   $asiento_correcto = FALSE;
 						   $this->new_error_msg("¡Imposible generar la partida para la subcuenta ".$partida0->codsubcuenta."!");
 						}
+		///////////////////   RECARGO				
+						if(!$this->recargo == 0) 
+							{
+							$subcuenta_rec = $subcuenta_recargo->get_codejercicio($eje0->codejercicio,'recargo');
+							//////  VERIFICA SI LA SUBCUENTA TIENE CUENTA ESPECIAL
+				//			$subcuenta_compras = $subcuenta->get_cuentaesp_subcuenta($subcuenta_rec->idsubcuenta,'COMPRA',$asiento->codejercicio);
+							}
+						if($this->recargo AND $asiento_correcto)
+						{
+						   $partida1 = new partida();
+						   $partida1->idasiento = $asiento->idasiento;
+						   $partida1->concepto = $asiento->concepto;
+						   $partida1->idsubcuenta = $subcuenta_rec->idsubcuenta;
+						   $partida1->codsubcuenta = $subcuenta_rec->codsubcuenta;
+			///////// Proveedor compra debe  ////////////////////////		Total RECARGO	   
+						   $partida1->debe = $this->recargo;
+						   $partida1->coddivisa = 0;
+						   $partida1->tasaconv = 0;
+						   $partida1->codserie = 0;
+						   if( !$partida1->save() )
+						   {
+							  $asiento_correcto = FALSE;
+							  $this->new_error_msg("¡Imposible generar la partida para la subcuenta ".$partida1->codsubcuenta."!");
+						   }
+						}						
 						
 						
-						if(!$this->importe_anticipo == 0) $subcuenta_anticipo = $subcuenta->get($this->idsubc_antic);
+		//////////////////////////////////
+		//////////////////     ANTICIPO				
+						if(!$this->importe_anticipo == 0) $subcuenta_anticipo = $subcuenta_recargo->get_codejercicio($eje0->codejercicio,'anticipo');
 						
 						if($this->importe_anticipo AND $asiento_correcto)
-						{
+						{ 
 						   $partida2 = new partida();
 						   $partida2->idasiento = $asiento->idasiento;
 						   $partida2->concepto = $asiento->concepto;
 						   $partida2->idsubcuenta = $subcuenta_anticipo->idsubcuenta;
 						   $partida2->codsubcuenta = $subcuenta_anticipo->codsubcuenta;
-			///////// Proveedor compra haber  ////////////////////////			   
+			///////// Proveedor compra haber  ////////////////////////		Total Anticipos	   
 						   $partida2->haber = $this->importe_anticipo;
 						   $partida2->coddivisa = 0;
 						   $partida2->tasaconv = 0;
@@ -478,17 +517,17 @@ class asiento_factura
 						   }
 						}
 			
-					   
+			//////////////////////////////////////   CAJA		   
 						 $subcuenta_compras = $subcuenta->get_cuentaesp('CAJA',$asiento->codejercicio);
-			 
-						if($subcuenta_compras AND $asiento_correcto)
-						{
+			 				$tot_imp = $orden->importepagar - $this->importe_anticipo;
+						if($subcuenta_compras and $asiento_correcto and !$tot_imp == 0 )
+						{ 
 						   $partida3 = new partida();
 						   $partida3->idasiento = $asiento->idasiento;
 						   $partida3->concepto = $asiento->concepto;
 						   $partida3->idsubcuenta = $subcuenta_compras->idsubcuenta;
 						   $partida3->codsubcuenta = $subcuenta_compras->codsubcuenta;
-			///////// Proveedor compra haber  ////////////////////////			   
+			///////// Proveedor compra haber  ////////////////////////		Caja	   
 						   $partida3->haber = $orden->importepagar - $this->importe_anticipo;
 						   $partida3->coddivisa = 0;
 						   $partida3->tasaconv = 0;

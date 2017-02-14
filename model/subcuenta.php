@@ -397,6 +397,21 @@ class subcuenta extends fs_model
          return FALSE;
    }
    
+      public function get_cuentaesp_subcuenta($idsubc,$id, $eje)
+   {
+      $sql = "SELECT * FROM co_subcuentas WHERE idsubcuenta = ".$this->var2str($idsubc)." and idcuenta IN "
+              ."(SELECT idcuenta FROM co_cuentas WHERE idcuentaesp = ".$this->var2str($id)
+              ." AND codejercicio = ".$this->var2str($eje).") ORDER BY codsubcuenta ASC;";
+      
+      $data = $this->db->select($sql);
+      if($data)
+      {
+         return new subcuenta($data[0]);
+      }
+      else
+         return FALSE;
+   }
+   
    public function tiene_saldo()
    {
       return !$this->floatcmp($this->debe, $this->haber, FS_NF0, TRUE);
