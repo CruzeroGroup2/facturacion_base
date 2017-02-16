@@ -21,6 +21,8 @@ require_model('articulo.php');
 require_model('linea_factura_cliente.php');
 require_model('linea_factura_proveedor.php');
 require_model('regularizacion_stock.php');
+require_model('inventario.php');
+require_once ('plugins/facturacion_base/controller/compras_imprimir.php');
 
 class informe_articulos extends fs_controller
 {
@@ -116,6 +118,12 @@ class informe_articulos extends fs_controller
          else
             $this->resultados = $this->stock($this->offset, $this->tipo_stock);
       }
+	  else if($this->pestanya == 'inventario')
+      {
+	  		print '<script language="JavaScript">'; 
+			print "window.open('index.php?page=compras_imprimir&inventario=TRUE&forma=2&idorden=".$orden->idorden."','_blank' )"; 
+			print '</script>';
+	  }
       else if($this->pestanya == 'search')
       {
          $this->referencia = '';

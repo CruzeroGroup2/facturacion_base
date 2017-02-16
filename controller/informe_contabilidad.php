@@ -46,10 +46,11 @@ class informe_contabilidad extends fs_controller
          $this->new_search();
       }
       
-      if( isset($_GET['diario']) )
-      {
- //        $this->libro_diario_csv($_GET['diario']);
+      if( isset($_GET['libro_diario']) )
+	  {
+  //       $this->libro_diario_csv($_GET['diario']);
  //			$this->libro_diario_pdf($_GET['diario']);
+ 
  
       }
       else if( isset($_GET['balance']) AND isset($_GET['eje']) )
@@ -70,7 +71,14 @@ class informe_contabilidad extends fs_controller
       }
 	  else if( isset($_POST['libro_diario']) )
       {
-         if(isset($_POST['codejercicio'])) $this->libro_diario_pdf($_POST['codejercicio'],$_POST['desde'],$_POST['hasta']);
+         if(isset($_POST['codejercicio'])) 
+		 {
+		 if($_POST['libro_diario'] == 1)
+		 $this->libro_diario_pdf($_POST['codejercicio'],$_POST['desde'],$_POST['hasta']);
+		 if($_POST['libro_diario'] == 2)
+		 $this->libro_diario_csv($_POST['codejercicio'],$_POST['desde'],$_POST['hasta']);
+		 		 
+		 }
       }
    }
    
@@ -86,10 +94,11 @@ class informe_contabilidad extends fs_controller
    
    private function libro_diario_csv($codeje,$desde,$hasta)
    {
+   
       $this->template = FALSE;
       header("content-type:application/csv;charset=UTF-8");
       header("Content-Disposition: attachment; filename=\"diario.csv\"");
-      echo "asiento;fecha;subcuenta;concepto;debe;haber\n";
+      echo "fecha;asiento;subcuenta;descripcion;;;concepto;;;debe;haber\n";
       
       $partida = new partida();
       $offset = 0;
@@ -98,16 +107,16 @@ class informe_contabilidad extends fs_controller
 	  $debT = 0;
 	  $habT = 0;
       $partidas = $partida->subcuentas_por_fecha($codeje,$desde,$hasta, $offset);
-	  
+	if(  $partidas )
+	{
 	  $asien_fecha = $partidas[0]['fecha'];
-      while( count($partidas) > 0 )
-      {
+      
 	  
          foreach($partidas as $par)
          {
 		 if ( $asien_fecha == $par['fecha'])
 		 {
-            echo $par['numero'].';'.$par['fecha'].';'.$par['codsubcuenta'].';'.$par['concepto'].';'.$par['debe'].';'.$par['haber']."\n";
+            echo $par['fecha'].';'.$par['numero'].';'.$par['codsubcuenta'].';'.$par['descripcion'].';;;'.$par['concepto'].';;;'.$par['debe'].';'.$par['haber']."\n";
             $offset++;
 			$debD = $debD + $par['debe'];
 			$habD = $habD + $par['haber'];
@@ -120,7 +129,7 @@ class informe_contabilidad extends fs_controller
 			
 			$debD = 0;
 	  		$habD = 0;
-			echo $par['numero'].';'.$par['fecha'].';'.$par['codsubcuenta'].';'.$par['concepto'].';'.$par['debe'].';'.$par['haber']."\n";
+			echo $par['fecha'].';'.$par['numero'].';'.$par['codsubcuenta'].';'.$par['descripcion'].';;;'.$par['concepto'].';;;'.$par['debe'].';'.$par['haber']."\n";
             $offset++;
 			$debD = $debD + $par['debe'];
 			$habD = $habD + $par['haber'];
@@ -130,13 +139,13 @@ class informe_contabilidad extends fs_controller
 		}	
 			
          }
-         
-         $partidas = $partida->subcuentas_por_fecha($codeje,$desde,$hasta, $offset);
+    }     
+ //        $partidas = $partida->subcuentas_por_fecha($codeje,$desde,$hasta, $offset);
 		 
-      }
+     
 	  echo ' ; ; ;Total diario  ;'. $debD.';'.$habD."\n\n";
 	  
-	  echo ' ;  ; ;Totales ;'. $debT.';'.$habT;
+//	  echo ' ;  ; ;Totales ;'. $debT.';'.$habT;
 
 }
 
