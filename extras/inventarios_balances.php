@@ -652,6 +652,8 @@ public function libro_diario(&$pdf_doc, &$eje, $titulo, $fechaini, $fechafin, $e
    }
 	
 	
+	
+	
    public function sumas_y_saldos(&$pdf_doc, &$eje, $titulo, $fechaini, $fechafin, $excluir=FALSE, $np=TRUE)
    {
       $cuenta = new cuenta();

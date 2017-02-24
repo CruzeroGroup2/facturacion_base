@@ -105,6 +105,8 @@ class contabilidad_asientos extends fs_controller
          $this->resultados = $this->asiento->all_sin_mayorizar($this->offset);
    }
    
+  
+   
    public function anterior_url()
    {
       $url = '';

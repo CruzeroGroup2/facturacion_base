@@ -141,7 +141,11 @@
          </tr>
       </thead>
       {loop="$fsc->resultados"}
+	  {if="$fsc->asiento->test_asiento_correcto($value->idasiento)==1"}
       <tr class="clickableRow{if="$value->importe<=0"} bg-warning{/if}" href="{$value->url()}&solapa={$fsc->solapa}">
+	   {else}
+	  <tr style="background-color:#FDC4B5" class="clickableRow{if="$value->importe<=0"} bg-warning{/if}" href="{$value->url()}&solapa={$fsc->solapa}">
+	  {/if}
          <td class="text-left">
             {if="$value->editable"}
             <span class="glyphicon glyphicon-pencil" title="Editable - No Mayorizado"></span>
@@ -149,7 +153,7 @@
 			<span class="glyphicon glyphicon-ok" title="Mayorizado"></span>
             {/if}
          </td>
-         <td>{$value->codejercicio}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="{$value->url()}">{$value->numero}</a></td>
+		 <td>{$value->codejercicio}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="{$value->url()}">{$value->numero}</a></td>
          <td>{$value->tipodocumento}</td>
          <td class="text-right">{$fsc->show_precio($value->importe)}</td>
          <td class="text-right">{$value->fecha}</td>

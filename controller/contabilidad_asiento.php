@@ -42,6 +42,7 @@ class contabilidad_asiento extends fs_controller
    public $suma_debe;
    public $suma_haber;
    public $saldo;
+   public $fecha_asiento;
    public $alias;
    public $resu;
    
@@ -107,11 +108,30 @@ class contabilidad_asiento extends fs_controller
 			$may_inco = 1;
 			if( $this->asiento->save())
 		 	{
-			$libro_mayor = new libro_mayor();
+//			$libro_mayor = new libro_mayor();
 			$partida = new partida();
-			$asiento_all = new asiento();	
-			$asientos_ejer = $asiento_all->all_por_ejercicio($this->asiento->codejercicio);
-			foreach($asientos_ejer as $ext)
+			$asiento_all = new asiento();
+			$libro_mes = substr( $this->asiento->fecha,3,2);
+			if( $partida->marca_libro_idasiento($idasiento,$libro_mes,$this->asiento->codejercicio))
+				{
+				/////////////////
+				/////  Actualiza los valores en la tabla Subcuentas Debe Haber y Saldo que al grabar vuelve a recalcular los valores
+				foreach($partida->all_from_asiento($this->asiento->idasiento) as $par)
+								{
+								$subcuenta = new subcuenta();
+								$subc = $subcuenta->get($par->idsubcuenta);
+								$subc->save();
+								}
+				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+								
+				$this->new_message('Mayorizado correcto.');
+				}
+				else $this->new_message('Imposible Mayorizar.');
+			}
+			else $this->new_message('Imposible Mayorizar.');
+//			$asientos_ejer = $asiento_all->all_por_ejercicio($this->asiento->codejercicio);
+			
+/*			foreach($asientos_ejer as $ext)
 						{
 			// suma por sub cuenta
 			//  SELECT codsubcuenta,sum(`debe`),sum(`haber`) FROM `co_partidas` WHERE `libromayor`=1 group by codsubcuenta			
@@ -134,6 +154,7 @@ class contabilidad_asiento extends fs_controller
 			
 			if( $may_corr * $may_inco == 1) $this->new_message('Mayorizado correcto.');
 			else $this->new_message('Imposible Mayorizar.');
+*/			
 	}
 	
 	
@@ -142,19 +163,41 @@ class contabilidad_asiento extends fs_controller
 	{
 	 
 			$idasiento = $_GET['anu_may'];
-
-			$may_corr = 0;
-			$may_inco = 1;
-			
-			$libro_mayor = new libro_mayor();
+			$this->asiento->mayorizado = 0;
+			$this->asiento->editable = 1;
+//			$may_corr = 0;
+//			$may_inco = 1;
+			if( $this->asiento->elimina_mayor())
+		 	{
 			$partida = new partida();
-			$asiento_all = new asiento();	
-			$asientos_ejer = $asiento_all->all_por_ejercicio($this->asiento->codejercicio);
+			$libro_mes = 0;
+			if( $partida->marca_libro_idasiento($idasiento,$libro_mes,$this->asiento->codejercicio))
+				{
+				/////////////////
+				/////  Actualiza los valores en la tabla Subcuentas Debe Haber y Saldo que al grabar vuelve a recalcular los valores
+				foreach($partida->all_from_asiento($this->asiento->idasiento) as $par)
+								{
+								$subcuenta = new subcuenta();
+								$subc = $subcuenta->get($par->idsubcuenta);
+								$subc->save();
+								}
+				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				
+				$this->new_message('Anular Mayorizado correcto.');
+				}
+				else $this->new_message('Imposible Anular Mayorizado.');
+			}
+			else $this->new_message('Imposible Anular Mayorizado.');
+			
+//			$libro_mayor = new libro_mayor();
+//			$partida = new partida();
+//			$asiento_all = new asiento();	
+//			$asientos_ejer = $asiento_all->all_por_ejercicio($this->asiento->codejercicio);
 
-
-			foreach($asientos_ejer as $ext)
+/*			foreach($asientos_ejer as $ext)
 				{
 							$libro_mes = substr( $ext->fecha,3,2);
+					
 							if( $partida->marca_libro_idasiento($idasiento,'0','0'))
 							{
 							foreach($partida->all_from_asiento($this->asiento->idasiento) as $par)
@@ -163,9 +206,11 @@ class contabilidad_asiento extends fs_controller
 								$subc = $subcuenta->get($par->idsubcuenta);
 								$subc->save();
 								}
+								
 							$may_corr = 1;
 							}
 							else 	$may_inco = 0;	
+
 				}
 				
 			
@@ -184,6 +229,7 @@ class contabilidad_asiento extends fs_controller
 			$this->asiento->save();
 			$this->new_message('Imposible Anular Mayorizado.');
 			}
+*/			
 	}
 
 
@@ -222,14 +268,19 @@ class contabilidad_asiento extends fs_controller
 			 }
          
 			 /// comprobamos el asiento
-			 $this->asiento->full_test();
-			 
+	//		 $this->asiento->full_test();
+			  if($this->asiento->full_test()==TRUE) 
+			 {
+			 $this->fecha_asiento=0;
+			 }
+			 	else $this->fecha_asiento=1;
 			 $this->lineas = $this->get_lineas_asiento();
 			 $partida = new partida();
 			 $valores=$partida->totales_from_asiento($this->asiento->idasiento);
 			 $this->suma_debe = $valores['debe'];
 			 $this->suma_haber = $valores['haber'];
 			 $this->saldo = $valores['saldo'];
+			
 	//		 $this->comprobante = $valores['comprobante'];
 	//		 $this->referencia = $valores['referencia'];
 			 

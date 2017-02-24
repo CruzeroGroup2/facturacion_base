@@ -209,7 +209,15 @@ class asiento_factura
 							$partida0->idsubcuenta = $idsubcuen;
 							$partida0->codsubcuenta = $subcuenta1;
 				///////////  Proveedor  haber			/////////
-							$partida0->haber = $total_sub;
+							if($total_sub > 0)
+							{ $partida0->haber = $total_sub;
+							  $partida0->debe = 0;
+							}
+							else 
+							{
+							  $partida0->haber = 0;
+							  $partida0->debe = $total_sub * -1;							
+							}
 							$partida0->coddivisa = $factura->coddivisa;
 							$partida0->tasaconv = $factura->tasaconv;
 							$partida0->codserie = $factura->codserie;
@@ -400,7 +408,12 @@ class asiento_factura
 					
 				  foreach($recibo->get_por_idorden($id) as $valord)
 						{
-						$this->importe_orden += $valord->importe;
+						$poscad = strpos($valord->factprov, '/');	   	
+						$subcuencod = substr($valord->factprov, 0, $poscad);
+					/////   Detecta si es Crédito	
+					if( $subcuencod == 'Q' || $subcuencod == 'C' ) $this->importe_orden -= $valord->importe;
+					else $this->importe_orden += $valord->importe;
+					
 						$this->recargo += $valord->recargo;
 						}
 						
@@ -792,7 +805,16 @@ class asiento_factura
 							$partida0->idsubcuenta = $idsubcuen;
 							$partida0->codsubcuenta = $subcuenta1;
 				///////////  Proveedor  debe			/////////
-							$partida0->debe = $total_sub;
+							if($total_sub > 0)
+							{ $partida0->debe = $total_sub;
+							  $partida0->haber = 0;
+							}
+							else 
+							{
+							  $partida0->debe = 0;
+							  $partida0->haber = $total_sub * -1;							
+							}
+				//			$partida0->debe = $total_sub;
 							$partida0->coddivisa = $factura->coddivisa;
 							$partida0->tasaconv = $factura->tasaconv;
 							$partida0->codserie = $factura->codserie;

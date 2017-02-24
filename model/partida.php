@@ -215,7 +215,17 @@ class partida extends fs_model
          return FALSE;
    }
    
-   
+      public function get_idasiento_buscar($id)
+   {
+   		$plist = array();
+      $partida = $this->db->select("SELECT * FROM ".$this->table_name." WHERE idasiento = ".$id.";");
+      if( $partida )
+   		{
+         foreach($partida as $p)
+            $plist[] = new partida($p);
+      	}      
+      return $plist;
+   }
    
    public function exists()
    {
@@ -907,7 +917,7 @@ class partida extends fs_model
       	$totales = array( 'debe' => 0, 'haber' => 0, 'saldo' => 0 );      
         $resultados = $this->db->select("SELECT COALESCE(SUM(p.debe), 0) as debe, COALESCE(SUM(p.haber), 0) as haber 
    FROM co_pgruposepigrafes pg, co_gruposepigrafes g, co_epigrafes e, co_cuentas c, co_subcuentas s, co_partidas p, co_asientos a
-   WHERE g.idpgrupo = pg.idpgrupo AND e.idgrupo = g.idgrupo AND c.idepigrafe = e.idepigrafe AND s.idcuenta = c.idcuenta AND p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND p.libromayor != 0 AND g.codpgrupo = ".$this->var2str($id)."
+   WHERE g.idpgrupo = pg.idpgrupo AND e.idgrupo = g.idgrupo AND c.idepigrafe = e.idepigrafe AND s.idcuenta = c.idcuenta AND p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta  AND a.mayorizado = 1 AND g.codpgrupo = ".$this->var2str($id)."
                AND a.fecha BETWEEN ".$this->var2str($fechaini)." AND ".$this->var2str($fechafin).";");
       
       
@@ -926,7 +936,7 @@ class partida extends fs_model
       	$totales = array( 'debe' => 0, 'haber' => 0, 'saldo' => 0 );      
         $resultados = $this->db->select("SELECT COALESCE(SUM(p.debe), 0) as debe, COALESCE(SUM(p.haber), 0) as haber 
    FROM co_gruposepigrafes g, co_epigrafes e, co_cuentas c, co_subcuentas s, co_partidas p, co_asientos a
-   WHERE e.idgrupo = g.idgrupo AND c.idepigrafe = e.idepigrafe AND s.idcuenta = c.idcuenta AND p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND p.libromayor != 0 AND g.codgrupo = ".$this->var2str($id)."
+   WHERE e.idgrupo = g.idgrupo AND c.idepigrafe = e.idepigrafe AND s.idcuenta = c.idcuenta AND p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND a.mayorizado = 1 AND g.codgrupo = ".$this->var2str($id)."
                AND a.fecha BETWEEN ".$this->var2str($fechaini)." AND ".$this->var2str($fechafin).";");
       
       
@@ -945,7 +955,7 @@ class partida extends fs_model
       	$totales = array( 'debe' => 0, 'haber' => 0, 'saldo' => 0 );      
         $resultados = $this->db->select("SELECT COALESCE(SUM(p.debe), 0) as debe, COALESCE(SUM(p.haber), 0) as haber 
    FROM co_epigrafes e, co_cuentas c, co_subcuentas s, co_partidas p, co_asientos a
-   WHERE c.idepigrafe = e.idepigrafe AND s.idcuenta = c.idcuenta AND p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND p.libromayor != 0 AND e.codepigrafe = ".$this->var2str($id)."
+   WHERE c.idepigrafe = e.idepigrafe AND s.idcuenta = c.idcuenta AND p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND a.mayorizado = 1 AND e.codepigrafe = ".$this->var2str($id)."
                AND a.fecha BETWEEN ".$this->var2str($fechaini)." AND ".$this->var2str($fechafin).";");
       
       
@@ -964,7 +974,7 @@ class partida extends fs_model
       	$totales = array( 'debe' => 0, 'haber' => 0, 'saldo' => 0 );      
         $resultados = $this->db->select("SELECT COALESCE(SUM(p.debe), 0) as debe, COALESCE(SUM(p.haber), 0) as haber 
    FROM co_cuentas c, co_subcuentas s, co_partidas p, co_asientos a
-   WHERE s.idcuenta = c.idcuenta AND p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND p.libromayor != 0 AND s.codcuenta = ".$this->var2str($id)."
+   WHERE s.idcuenta = c.idcuenta AND p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND a.mayorizado = 1 AND s.codcuenta = ".$this->var2str($id)."
                AND a.fecha BETWEEN ".$this->var2str($fechaini)." AND ".$this->var2str($fechafin).";");
       
       
@@ -983,7 +993,7 @@ class partida extends fs_model
       	$totales = array( 'debe' => 0, 'haber' => 0, 'saldo' => 0 );      
         $resultados = $this->db->select("SELECT COALESCE(SUM(p.debe), 0) as debe, COALESCE(SUM(p.haber), 0) as haber 
    FROM co_subcuentas s, co_partidas p, co_asientos a
-   WHERE p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND p.libromayor != 0 AND s.codsubcuenta = ".$this->var2str($id)."
+   WHERE p.idasiento = a.idasiento AND p.idsubcuenta = s.idsubcuenta AND a.mayorizado = 1 AND s.codsubcuenta = ".$this->var2str($id)."
                AND a.fecha BETWEEN ".$this->var2str($fechaini)." AND ".$this->var2str($fechafin).";");
       
       

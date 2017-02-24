@@ -190,6 +190,36 @@
                      </div>
                   </form>
                </div>
+			   <div class="row">
+                  <form action="{$fsc->url()}" method="post" target="_blank" class="form">
+                     <input type="hidden" name="codejercicio" value="{$value->codejercicio}"/>
+					 <input type="hidden" name="balance_cvs" value="1"/>
+					 <input type="hidden" name="tipo" value="4"/>
+                     <div class="col-sm-2">
+                        <div class="form-group">
+                           Desde:
+                           <input type="text" name="desde" value="{$value->fechainicio}" onClick="blur()" class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" maxlength="10"/>
+                        </div>
+                     </div>
+                     <div class="col-sm-2">
+                        <div class="form-group">
+                           Hasta:
+                           <input type="text" name="hasta" value="{$value->fechafin}" onClick="blur()" class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" maxlength="10"/>
+                        </div>
+                     </div>
+                    
+                     <div class="col-sm-2">
+                        <br/>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                           <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> &nbsp; CVS
+                        </button>
+                     </div>
+                  </form>
+               </div>
+			   
+			   
+			   
+			   
             </div>
          </div>
       </div>
@@ -234,8 +264,14 @@
         document.f_buscar_subcuentas.query.focus();
    }
    
-  function descarga_cvs($nom_codejer)
+  function genera_cvs()
   {
+  var libro_diario = 2;
+  var codejercicio = document.getElementById('codejercicio_cvs').value;
+  var desde = document.getElementById('desde_cvs').value;
+  var hasta = document.getElementById('hasta_cvs').value;
+   window.location.href = 'index.php?page=informe_contabilidad&libro_diario='+libro_diario+'&codejercicio='+codejercicio+'&desde='+desde+'&hasta='+hasta;
+ 
   
   }
    

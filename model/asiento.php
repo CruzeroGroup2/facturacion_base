@@ -360,6 +360,117 @@ class asiento extends fs_model
       return $status;
    }
    
+   
+      public function test_asiento_correcto($idasiento,$duplicados = TRUE)
+   {
+      $status = TRUE;
+      $partida = new partida();
+      /*
+       * Comprobamos que el asiento no esté vacío o descuadrado.
+       * También comprobamos que las subcuentas pertenezcan al mismo ejercicio.
+       */
+      $debe = 0;
+      $haber = 0;
+      $partidas = $partida->get_idasiento_buscar($idasiento);
+      if($partidas)
+      {
+         foreach($partidas as $p)
+         {
+            $debe += $p->debe;
+            $haber += $p->haber;
+            
+            $sc = $p->get_subcuenta();
+			$as = $this->get($idasiento);
+			///////////////  ejercicio subcuenta diferente ejercicio asiento		
+            if($sc)
+            {
+               if($sc->codejercicio != $as->codejercicio)
+               {
+                  $this->new_error_msg('La subcuenta '.$sc->codsubcuenta.' pertenece a otro ejercicio.');
+                  $status = FALSE;
+               }
+            }
+            else
+            {
+               $this->new_error_msg('Subcuenta '.$p->codsubcuenta.' no encontrada.');
+               $status = FALSE;
+            }
+         }
+      }
+      
+      if( !$this->floatcmp($debe, $haber, FS_NF0, TRUE) )
+      {
+         $this->new_error_msg( "Asiento descuadrado. Descuadre: ".round($debe-$haber, FS_NF0+1)."   - No se puede Mayorizar ");
+         $status = FALSE;
+      }
+      
+      
+      /// comprobamos que la fecha sea correcta y el asiento esté dentro del rango
+      $ejercicio = new ejercicio();
+      $eje0 = $ejercicio->get($as->codejercicio);
+      if($eje0)
+      {
+         if( strtotime($as->fecha) < strtotime($eje0->fechainicio) OR strtotime($as->fecha) > strtotime($eje0->fechafin) )
+         {
+            $this->new_error_msg("La fecha de este asiento está fuera del rango del <a target='_blank' href='".$eje0->url()."'>ejercicio</a>.");
+            $status = FALSE;
+         }
+      }
+      
+      if($partidas)
+      {
+         /// comprobamos la factura asociada
+         $fac = $this->get_factura();
+         if($fac)
+         {
+            if($fac->idasiento != $idasiento)
+            {
+               $status = FALSE;
+               $this->new_error_msg("Este asiento apunta a una <a href='".$fac->url()."'>factura incorrecta</a>.");
+            }
+         }
+      }
+      
+      if($status AND $duplicados)
+      {
+         /// comprobamos si es un duplicado
+         $asientos = $this->db->select("SELECT * FROM ".$this->table_name." WHERE fecha = ".$this->var2str($this->fecha)."
+            AND concepto = ".$this->var2str($this->concepto)." AND importe = ".$this->var2str($this->importe)."
+            AND idasiento != ".$this->var2str($idasiento).";");
+         if($asientos)
+         {
+            foreach($asientos as $as)
+            {
+               /// comprobamos las líneas 
+               if( strtolower(FS_DB_TYPE) == 'mysql' )
+               {
+                  $aux = $this->db->select("SELECT codsubcuenta,debe,haber,codcontrapartida,concepto
+                     FROM co_partidas WHERE idasiento = ".$this->var2str($idasiento)."
+                     AND NOT EXISTS(SELECT codsubcuenta,debe,haber,codcontrapartida,concepto FROM co_partidas
+                     WHERE idasiento = ".$this->var2str($as['idasiento']).");");
+               }
+               else
+               {
+                  $aux = $this->db->select("SELECT codsubcuenta,debe,haber,codcontrapartida,concepto
+                     FROM co_partidas WHERE idasiento = ".$this->var2str($idasiento)."
+                     EXCEPT SELECT codsubcuenta,debe,haber,codcontrapartida,concepto FROM co_partidas
+                     WHERE idasiento = ".$this->var2str($as['idasiento']).";");
+               }
+               
+               if( !$aux )
+               {
+                  $this->new_error_msg("Este asiento es un posible duplicado de
+                     <a href='index.php?page=contabilidad_asiento&id=".$as['idasiento']."'>este otro</a>.
+                     Si no lo es, para evitar este mensaje, simplemente modifica el concepto.");
+                  $status = FALSE;
+               }
+            }
+         }
+      }
+      
+      return $status;
+   }
+   
    public function fix()
    {
       $debe = 0;
@@ -753,7 +864,7 @@ class asiento extends fs_model
       new partida();
       
       $alist = array();
-      $asientos = $this->db->select("SELECT p.idasiento,SUM(p.debe) as sdebe,SUM(p.haber) as shaber
+      $asientos = $this->db->select("SELECT a.numero,p.idasiento,SUM(p.debe) as sdebe,SUM(p.haber) as shaber
          FROM co_partidas p, ".$this->table_name." a
           WHERE p.idasiento = a.idasiento
            GROUP BY p.idasiento
