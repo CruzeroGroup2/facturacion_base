@@ -46,10 +46,11 @@ class informe_contabilidad extends fs_controller
          $this->new_search();
       }
       
-      if( isset($_GET['diario']) )
-      {
- //        $this->libro_diario_csv($_GET['diario']);
+      if( isset($_GET['libro_diario']) )
+	  {
+  //       $this->libro_diario_csv($_GET['diario']);
  //			$this->libro_diario_pdf($_GET['diario']);
+ 
  
       }
       else if( isset($_GET['balance']) AND isset($_GET['eje']) )
@@ -68,9 +69,20 @@ class informe_contabilidad extends fs_controller
       {
          if(isset($_POST['codejercicio'])) $this->balance_sumas_y_saldos();
       }
+	  else if( isset($_POST['balance_cvs']) )
+      {
+         if(isset($_POST['codejercicio'])) $this->balance_sumas_y_saldos_cvs();
+      }
 	  else if( isset($_POST['libro_diario']) )
       {
-         if(isset($_POST['codejercicio'])) $this->libro_diario_pdf($_POST['codejercicio'],$_POST['desde'],$_POST['hasta']);
+         if(isset($_POST['codejercicio'])) 
+		 {
+		 if($_POST['libro_diario'] == 1)
+		 $this->libro_diario_pdf($_POST['codejercicio'],$_POST['desde'],$_POST['hasta']);
+		 if($_POST['libro_diario'] == 2)
+		 $this->libro_diario_csv($_POST['codejercicio'],$_POST['desde'],$_POST['hasta']);
+		 		 
+		 }
       }
    }
    
@@ -86,10 +98,11 @@ class informe_contabilidad extends fs_controller
    
    private function libro_diario_csv($codeje,$desde,$hasta)
    {
+   
       $this->template = FALSE;
       header("content-type:application/csv;charset=UTF-8");
       header("Content-Disposition: attachment; filename=\"diario.csv\"");
-      echo "asiento;fecha;subcuenta;concepto;debe;haber\n";
+      echo "fecha;asiento;subcuenta;descripcion;;;concepto;;;debe;haber\n";
       
       $partida = new partida();
       $offset = 0;
@@ -98,16 +111,16 @@ class informe_contabilidad extends fs_controller
 	  $debT = 0;
 	  $habT = 0;
       $partidas = $partida->subcuentas_por_fecha($codeje,$desde,$hasta, $offset);
-	  
+	if(  $partidas )
+	{
 	  $asien_fecha = $partidas[0]['fecha'];
-      while( count($partidas) > 0 )
-      {
+      
 	  
          foreach($partidas as $par)
          {
 		 if ( $asien_fecha == $par['fecha'])
 		 {
-            echo $par['numero'].';'.$par['fecha'].';'.$par['codsubcuenta'].';'.$par['concepto'].';'.$par['debe'].';'.$par['haber']."\n";
+            echo $par['fecha'].';'.$par['numero'].';'.$par['codsubcuenta'].';'.$par['descripcion'].';;;'.$par['concepto'].';;;'.$par['debe'].';'.$par['haber']."\n";
             $offset++;
 			$debD = $debD + $par['debe'];
 			$habD = $habD + $par['haber'];
@@ -120,7 +133,7 @@ class informe_contabilidad extends fs_controller
 			
 			$debD = 0;
 	  		$habD = 0;
-			echo $par['numero'].';'.$par['fecha'].';'.$par['codsubcuenta'].';'.$par['concepto'].';'.$par['debe'].';'.$par['haber']."\n";
+			echo $par['fecha'].';'.$par['numero'].';'.$par['codsubcuenta'].';'.$par['descripcion'].';;;'.$par['concepto'].';;;'.$par['debe'].';'.$par['haber']."\n";
             $offset++;
 			$debD = $debD + $par['debe'];
 			$habD = $habD + $par['haber'];
@@ -130,13 +143,13 @@ class informe_contabilidad extends fs_controller
 		}	
 			
          }
-         
-         $partidas = $partida->subcuentas_por_fecha($codeje,$desde,$hasta, $offset);
+    }     
+ //        $partidas = $partida->subcuentas_por_fecha($codeje,$desde,$hasta, $offset);
 		 
-      }
+     
 	  echo ' ; ; ;Total diario  ;'. $debD.';'.$habD."\n\n";
 	  
-	  echo ' ;  ; ;Totales ;'. $debT.';'.$habT;
+//	  echo ' ;  ; ;Totales ;'. $debT.';'.$habT;
 
 }
 
@@ -234,4 +247,182 @@ private function libro_diario_pdf($codeje,$desde,$hasta)
          }
       }
    }
+   
+   
+      private function balance_sumas_y_saldos_cvs()
+   {
+      $eje = $this->ejercicio->get($_POST['codejercicio']);
+      if($eje)
+      {
+         if( strtotime($_POST['desde']) < strtotime($eje->fechainicio) OR strtotime($_POST['hasta']) > strtotime($eje->fechafin) )
+         {
+            $this->new_error_msg('La fecha está fuera del rango del ejercicio.');
+         }
+         else
+         {
+		      $this->template = FALSE;
+			  header("content-type:application/csv;charset=UTF-8");
+			  header("Content-Disposition: attachment; filename=\"plan.csv\"");
+			  echo utf8_decode("Cuenta;Descripción;;;;Acumulado Debe;;Acumulado Haber;;Saldo Deudo;;Saldo Acreedor\n");
+		
+			$fechaini = $_POST['desde'];
+			$fechafin =	$_POST['hasta'];		
+						  $tdebe = 0;
+						  $thaber = 0;
+						  $tsaldod = 0;
+						  $tsaldoa = 0;
+						  $pgrupo = new pgrupo_epigrafes();
+						  $partida = new partida();
+						  
+						  /// metemos todo en una lista
+						  $auxlist = array();
+						  $offset = 0;
+						  $pgrupo = $pgrupo->all_from_ejercicio($eje->codejercicio, $offset);
+						  
+					  
+					
+								
+							 foreach($pgrupo as $pg)
+							 {
+									$grupo = $pg->get_grupo();
+									$debe = 0;
+									$haber = 0;
+									$auxt = $partida->totales_pgrupo($pg->codpgrupo, $fechaini, $fechafin);
+											   $debe = $auxt['debe'];
+											   $haber = $auxt['haber'];
+				//					if( $debe!=0 OR $haber!=0)
+									{
+											if( $debe-$haber > 0)
+											   {
+											   $saldo_d = $debe-$haber;
+											   $saldo_a = 0;
+											   }
+											   else
+											   {
+											   $saldo_d = 0;
+											   $saldo_a = $haber-$debe;
+											   }
+								echo html_entity_decode($pg->codpgrupo.';'.$pg->descripcion.';;;;'.$this->show_numero($debe,2).';;'.$this->show_numero($haber,2).';;'.$this->show_numero($saldo_d,2).';;'.$this->show_numero($saldo_a,2)."\n");					   
+											$tdebe += $debe;
+											$thaber += $haber;
+											$tsaldod += $saldo_d;
+											$tsaldoa += $saldo_a;
+									}				
+												
+								foreach($grupo as $g)
+								{
+									$epigrafe = $g->get_epigrafes();
+									$debe = 0;
+									$haber = 0;
+					
+									$auxt = $partida->totales_grupo($g->codgrupo, $fechaini, $fechafin);
+											   $debe = $auxt['debe'];
+											   $haber = $auxt['haber'];
+					//				if( $debe!=0 OR $haber!=0)
+									{
+												if( $debe-$haber > 0)
+											   {
+											   $saldo_d = $debe-$haber;
+											   $saldo_a = 0;
+											   }
+											   else
+											   {
+											   $saldo_d = 0;
+											   $saldo_a = $haber-$debe;
+											   }
+							echo html_entity_decode($g->codgrupo.';  '.$g->descripcion.';;;;'.$this->show_numero($debe,2).';;'.$this->show_numero($haber,2).';;'.$this->show_numero($saldo_d,2).';;'.$this->show_numero($saldo_a,2)."\n");					   
+						   
+									}				
+									
+									foreach($epigrafe as $e)
+									{
+										$cuentas = $e->get_cuentas();
+										$debe = 0;
+										$haber = 0;
+										$auxt = $partida->totales_epigrafe($e->codepigrafe, $fechaini, $fechafin);
+											   $debe = $auxt['debe'];
+											   $haber = $auxt['haber'];
+					//					if( $debe!=0 OR $haber!=0)
+										{
+												if( $debe-$haber > 0)
+											   {
+											   $saldo_d = $debe-$haber;
+											   $saldo_a = 0;
+											   }
+											   else
+											   {
+											   $saldo_d = 0;
+											   $saldo_a = $haber-$debe;
+											   }
+							echo html_entity_decode($e->codepigrafe.';    '.$e->descripcion.';;;;'.$this->show_numero($debe,2).';;'.$this->show_numero($haber,2).';;'.$this->show_numero($saldo_d,2).';;'.$this->show_numero($saldo_a,2)."\n");
+										
+										}	
+										
+										foreach($cuentas as $c)
+										{
+										$subcuentas = $c->get_subcuentas();
+										$debe = 0;
+										$haber = 0;
+										$auxt = $partida->totales_cuenta($c->codcuenta, $fechaini, $fechafin);
+											   $debe = $auxt['debe'];
+											   $haber = $auxt['haber'];
+					//					if( $debe!=0 OR $haber!=0)
+										{
+												if( $debe-$haber > 0)
+											   {
+											   $saldo_d = $debe-$haber;
+											   $saldo_a = 0;
+											   }
+											   else
+											   {
+											   $saldo_d = 0;
+											   $saldo_a = $haber-$debe;
+											   }
+							echo html_entity_decode($c->codcuenta.';      '.$c->descripcion.';;;;'.$this->show_numero($debe,2).';;'.$this->show_numero($haber,2).';;'.$this->show_numero($saldo_d,2).';;'.$this->show_numero($saldo_a,2)."\n");				   
+											
+										}
+											foreach($subcuentas as $sc)
+											{
+										$debe = 0;
+										$haber = 0;
+							
+										$auxt = $partida->totales_subcuenta($sc->codsubcuenta, $fechaini, $fechafin);
+											   $debe = $auxt['debe'];
+											   $haber = $auxt['haber'];
+						//				if( $debe!=0 OR $haber!=0)
+													{
+															if( $debe-$haber > 0)
+														   {
+														   $saldo_d = $debe-$haber;
+														   $saldo_a = 0;
+														   }
+														   else
+														   {
+														   $saldo_d = 0;
+														   $saldo_a = $haber-$debe;
+														   }
+						
+							
+							echo utf8_decode($sc->codsubcuenta.';        '.html_entity_decode($sc->descripcion).';;;;'.$this->show_numero($debe,2).';;'.$this->show_numero($haber,2).';;'.$this->show_numero($saldo_d,2).';;'.$this->show_numero($saldo_a,2)."\n");							   
+														   
+													}							   
+											}	
+										}					
+									}				
+								}
+								
+					
+								$offset++;
+							 }
+					 ////////////////////////////////////////////
+						echo "\n\n\n";	
+						echo ';;Totales : ;;;'.$this->show_numero($tdebe,2).';;'.$this->show_numero($thaber,2).';;'.$this->show_numero($tsaldod).';;'.$this->show_numero($tsaldoa)."\n";
+					   
+					
+
+
+         }
+      }
+   }
+
 }

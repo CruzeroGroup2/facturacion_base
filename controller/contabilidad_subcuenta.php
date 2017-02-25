@@ -150,9 +150,11 @@ class contabilidad_subcuenta extends fs_controller
    {
       if($_POST['descripcion'] != $this->subcuenta->descripcion OR $_POST['alias'] != $this->subcuenta->alias)
       {
+	  
          $this->subcuenta->descripcion = $_POST['descripcion'];
          $this->subcuenta->coddivisa = $_POST['coddivisa'];
 		 $this->subcuenta->alias = $_POST['alias'];
+		 
          $this->subcuenta->save();
       }
       

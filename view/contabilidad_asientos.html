@@ -54,10 +54,10 @@
          <h2 style="margin-top: 0px; margin-left:0px">Asientos</h2>
       </div>
 	  <div class="col-sm-2 col-xs-6 text-left">
-        <input type="text" name="desde"  class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" placeholder="Desde"/> 
+        <input type="text" name="desde" onClick="blur()"  class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" placeholder="Desde"/> 
       </div>
 	  <div class="col-sm-2 col-xs-6 text-left">
-        <input type="text" name="hasta"  class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" placeholder="Hasta"/> 
+        <input type="text" name="hasta" onClick="blur()"   class='form-control calendario' style="background:#FFFFFF" readonly="readonly" autocomplete="off" placeholder="Hasta"/> 
       </div>
 	   <div class="col-sm-2 col-xs-4">
 	   
@@ -78,12 +78,12 @@
    </div>
 </div>
 
-{if="$fsc->query!=''"}
+{if="$fsc->query!='' || ($fsc->desde && $fsc->hasta)"}
 <ul class="nav nav-tabs" role="tablist">
    <li class="active">
       <a href="#">
          <span class="glyphicon glyphicon-search"></span>
-         <span class="hidden-xs">&nbsp; Resultados de "{$fsc->query}"</span>
+         <span class="hidden-xs">&nbsp; Todos (Mayorizados y No Mayorizados)</span>
       </a>
    </li>
 </ul>
@@ -141,7 +141,11 @@
          </tr>
       </thead>
       {loop="$fsc->resultados"}
+	  {if="$fsc->asiento->test_asiento_correcto($value->idasiento)==1"}
       <tr class="clickableRow{if="$value->importe<=0"} bg-warning{/if}" href="{$value->url()}&solapa={$fsc->solapa}">
+	   {else}
+	  <tr style="background-color:#FDC4B5" class="clickableRow{if="$value->importe<=0"} bg-warning{/if}" href="{$value->url()}&solapa={$fsc->solapa}">
+	  {/if}
          <td class="text-left">
             {if="$value->editable"}
             <span class="glyphicon glyphicon-pencil" title="Editable - No Mayorizado"></span>
@@ -149,7 +153,7 @@
 			<span class="glyphicon glyphicon-ok" title="Mayorizado"></span>
             {/if}
          </td>
-         <td>{$value->codejercicio}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="{$value->url()}">{$value->numero}</a></td>
+		 <td>{$value->codejercicio}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="{$value->url()}">{$value->numero}</a></td>
          <td>{$value->tipodocumento}</td>
          <td class="text-right">{$fsc->show_precio($value->importe)}</td>
          <td class="text-right">{$value->fecha}</td>

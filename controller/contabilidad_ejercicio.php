@@ -524,19 +524,23 @@ class contabilidad_ejercicio extends fs_controller
                
                if( $xml->grupo_epigrafes )
                {
-                  foreach($xml->grupo_epigrafes as $ge)
+                  foreach($xml->grupo_epigrafes as $pge)
                   {
                      $grupo_epigrafes = new grupo_epigrafes();
-                     if( !$grupo_epigrafes->get_by_codigo($ge->codgrupo, $this->ejercicio->codejercicio) )
+                     if( !$grupo_epigrafes->get_by_codigo($pge->codgrupo, $this->ejercicio->codejercicio) )
                      {
+					 	$ge = $pgrupo_epigrafes->get_by_codigo($pge->codpgrupo, $this->ejercicio->codejercicio);
+                        if($ge)
+                        {
                         $grupo_epigrafes->codejercicio = $this->ejercicio->codejercicio;
-                        $grupo_epigrafes->codgrupo = $ge->codgrupo;
-                        $grupo_epigrafes->descripcion = base64_decode($ge->descripcion);
+                        $grupo_epigrafes->codgrupo = $pge->codgrupo;
+                        $grupo_epigrafes->descripcion = base64_decode($pge->descripcion);
 						$grupo_epigrafes->codpgrupo = $ge->codpgrupo;
 						$grupo_epigrafes->idpgrupo = $ge->idpgrupo;
                         
                         if( !$grupo_epigrafes->save() )
                            $this->importar_url = FALSE;
+						}   
                      }
                   }
                }
