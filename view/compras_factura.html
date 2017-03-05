@@ -185,7 +185,7 @@
                   <span class="hidden-xs">&nbsp; Asiento contable</span>
                </a>
                {else}
-			 <button class="btn btn-sm btn-default" type="button" onclick="genera_asiento()">
+			 <button class="btn btn-sm btn-default" type="button"  onclick="this.disabled = true;genera_asiento()">
                <span class="glyphicon glyphicon-paperclip"></span> &nbsp; Generar asiento
             </button>
 
@@ -229,7 +229,7 @@
 				{if="$fsc->factura->pagada=='0'"}
 					{if="$fsc->factura_anulada!=1"}
 						<div class="btn-group">
-							<a class="btn btn-sm btn-warning"   href="{$fsc->url()}&gen_devolucion=TRUE&petid={$fsc->random_string()}&id={$fsc->factura->idfactura}">
+							<a class="btn btn-sm btn-warning" data-role="disabled"  href="{$fsc->url()}&gen_devolucion=TRUE&petid={$fsc->random_string()}&id={$fsc->factura->idfactura}">
 							<span class="glyphicon glyphicon-paperclip"></span> <span class="hidden-xs">&nbsp; Anular Factura</span>
 							</a>
 						 </div>
@@ -387,7 +387,7 @@
 							 <select name="subcuenta_{$counter}" id="subcuenta_{$counter}" class="form-control text-right" style='width:200px; font-size:12px'>
 							 <option value='{$value->codsubcuenta}/{$value->subcuentadesc}%{$value->idsubcuenta}' selected="selected" >{$value->subcuentadesc}</option>
 							 {loop="$fsc->list_subcuen"}
-							 <option value='{$value->codcuenta}/{$value->descripcion}%{$value->idsubcuenta}' >{$value->descripcion}</option>
+							 <option value='{$value->codsubcuenta}/{$value->descripcion}%{$value->idsubcuenta}' >{$value->descripcion}</option>
 							 {/loop}
 								</select>
 						</td>

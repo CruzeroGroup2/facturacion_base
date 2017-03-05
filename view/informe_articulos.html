@@ -13,6 +13,12 @@
          <span class="hidden-xs">&nbsp; Stock</span>
       </a>
    </li>
+   <li role="presentation"{if="$fsc->pestanya=='inventario'"} class="active"{/if}>
+      <a href="{$fsc->url()}&tab=inventario">
+         <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
+         <span class="hidden-xs">&nbsp; Inventario</span>
+      </a>
+   </li>
    <li role="presentation"{if="$fsc->pestanya=='search'"} class="active"{/if}>
       <a href="{$fsc->url()}&tab=search">
          <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
@@ -225,6 +231,22 @@
    </li>
    {/if}
 </ul>
+{elseif="$fsc->pestanya=='inventario'"}
+   <table class="table table-hover">
+      <thead>
+         <tr>
+            <th class="text-left">Almacén</th>
+            <th class="text-left">Artículo</th>
+            <th class="text-right">Cant. inicial</th>
+            <th class="text-right">Cant. final</th>
+            <th class="text-left">Usuario</th>
+            <th class="text-left">Motivo</th>
+            <th class="text-right">Fecha</th>
+            <th class="text-right">Hora</th>
+         </tr>
+      </thead>
+	</table>
+
 {elseif="$fsc->pestanya=='search'"}
 <script type="text/javascript">
    $(document).ready(function() {

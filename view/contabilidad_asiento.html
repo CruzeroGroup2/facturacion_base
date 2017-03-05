@@ -228,7 +228,7 @@
                <a id="b_nuevo_almacen" class="btn btn-sm btn-default" href="index.php?page=contabilidad_asientos&{$fsc->solapa}">
                   <span class="glyphicon glyphicon-arrow-left"></span> &nbsp; Asientos
                </a>
-			   {if="$fsc->saldo == 0"}
+			   {if="$fsc->saldo == 0 && $fsc->fecha_asiento==0"}
 			   <a href="{$fsc->url()}&genlibro=1&idasiento={$fsc->asiento->idasiento}" class="btn btn-sm btn-default">
                   <span class="glyphicon glyphicon-book"></span> &nbsp; Mayorizar
                </a>

@@ -53,6 +53,33 @@ class contabilidad_ejercicio extends fs_controller
       $sec1 = new secuencia_contabilidad();
       $sec2 = new secuencia();
       
+//  Cambia negativos del DEBE	  
+/*	  $partida0 = new partida();
+	  $subcuenta = new subcuenta();
+	  $part = $partida0->correccion_debe_negativos();
+	 
+		$num=0;
+		for($i=0;$i<30;$i++)
+		{	
+		$num=$i*50;
+			
+				foreach($partida0->all($num) as $par)
+								{
+								
+								$subc = $subcuenta->get($par->idsubcuenta);
+								if($subc) $subc->save();
+								else
+								{
+								print '<script language="JavaScript">'; 
+					print 'alert(" id partida  ");'; 
+					print '</script>';
+								}
+								}
+		}
+		print '<script language="JavaScript">'; 
+					print 'alert(" Fin ");'; 
+					print '</script>';
+*/	  
       /// ¿El usuario tiene permiso para eliminar en esta página?
       $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
       
@@ -524,19 +551,23 @@ class contabilidad_ejercicio extends fs_controller
                
                if( $xml->grupo_epigrafes )
                {
-                  foreach($xml->grupo_epigrafes as $ge)
+                  foreach($xml->grupo_epigrafes as $pge)
                   {
                      $grupo_epigrafes = new grupo_epigrafes();
-                     if( !$grupo_epigrafes->get_by_codigo($ge->codgrupo, $this->ejercicio->codejercicio) )
+                     if( !$grupo_epigrafes->get_by_codigo($pge->codgrupo, $this->ejercicio->codejercicio) )
                      {
+					 	$ge = $pgrupo_epigrafes->get_by_codigo($pge->codpgrupo, $this->ejercicio->codejercicio);
+                        if($ge)
+                        {
                         $grupo_epigrafes->codejercicio = $this->ejercicio->codejercicio;
-                        $grupo_epigrafes->codgrupo = $ge->codgrupo;
-                        $grupo_epigrafes->descripcion = base64_decode($ge->descripcion);
+                        $grupo_epigrafes->codgrupo = $pge->codgrupo;
+                        $grupo_epigrafes->descripcion = base64_decode($pge->descripcion);
 						$grupo_epigrafes->codpgrupo = $ge->codpgrupo;
 						$grupo_epigrafes->idpgrupo = $ge->idpgrupo;
                         
                         if( !$grupo_epigrafes->save() )
                            $this->importar_url = FALSE;
+						}   
                      }
                   }
                }

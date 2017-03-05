@@ -224,8 +224,11 @@ class compras_factura extends fs_controller
 		 $this->factura->tasaconv = $_POST['tasaconv'];
 		 
 		$eje0 = $this->ejercicio->get_by_fecha($_POST['fecha']);
-      if(  $eje0 )	  		
+      if(  $eje0 )	 
+	  { 	
+	  $this->factura->codejercicio = $eje0->codejercicio;	
           $this->factura->hora = $_POST['hora'];
+	  }	  
       else
       {
          $this->new_error_msg('Ejercicio no encontrado.');
@@ -378,10 +381,35 @@ class compras_factura extends fs_controller
 				  $subcuencod = substr($_POST['subcuenta_'.$i], 0, $poscad);
 				  $subcuendes = substr($_POST['subcuenta_'.$i],$poscad+1,$posid-$postot);
 				  $idsubcuen = substr($_POST['subcuenta_'.$i],$posid+1);
-	  
-				  $linea->codsubcuenta = $subcuencod;				  				  
+				  $val_sub = $this->subcuentas->get($idsubcuen);
+
+				$eje0 = $this->ejercicio->get_by_fecha($_POST['fecha']);
+					  if(  $eje0 )	 
+					  { 	 
+					  $this->factura->codejercicio = $eje0->codejercicio;
+					  $sub = $this->subcuentas->get_by_codigo($val_sub->codsubcuenta,$eje0->codejercicio);
+					  if($sub)
+						{
+				  $linea->codsubcuenta = $sub->codsubcuenta;				  				  
+                  $linea->subcuentadesc = $sub->descripcion;
+				  $linea->idsubcuenta = $sub->idsubcuenta;
+					  if($sub->idsubcuenta != $idsubcuen)
+					  {
+					print '<script language="JavaScript">'; 
+					print 'alert(" Al cambiar de fecha cambió el ejercicio\n Verifique las SubCuentas para este ejercicio  ");'; 
+					print '</script>';
+					  }
+                        }
+                      else $this->new_error_msg('a '.$eje0->codejercicio.' b  '.$subcuencod.'  c ');
+					  }	  
+					  else
+					  {
+					$linea->codsubcuenta = $subcuencod;				  				  
                   $linea->subcuentadesc = $subcuendes;
 				  $linea->idsubcuenta = $idsubcuen;
+						 $this->new_error_msg('Ejercicio no encontrado.');
+					  }
+				  
 				  
 				  
 				  
