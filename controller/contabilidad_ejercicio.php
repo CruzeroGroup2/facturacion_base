@@ -53,6 +53,33 @@ class contabilidad_ejercicio extends fs_controller
       $sec1 = new secuencia_contabilidad();
       $sec2 = new secuencia();
       
+//  Cambia negativos del DEBE	  
+/*	  $partida0 = new partida();
+	  $subcuenta = new subcuenta();
+	  $part = $partida0->correccion_debe_negativos();
+	 
+		$num=0;
+		for($i=0;$i<30;$i++)
+		{	
+		$num=$i*50;
+			
+				foreach($partida0->all($num) as $par)
+								{
+								
+								$subc = $subcuenta->get($par->idsubcuenta);
+								if($subc) $subc->save();
+								else
+								{
+								print '<script language="JavaScript">'; 
+					print 'alert(" id partida  ");'; 
+					print '</script>';
+								}
+								}
+		}
+		print '<script language="JavaScript">'; 
+					print 'alert(" Fin ");'; 
+					print '</script>';
+*/	  
       /// ¿El usuario tiene permiso para eliminar en esta página?
       $this->allow_delete = $this->user->allow_delete_on(__CLASS__);
       

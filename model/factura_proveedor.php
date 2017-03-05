@@ -781,7 +781,17 @@ class factura_proveedor extends fs_model
          $this->new_error_msg("Factura no encontrada.");
  }
  
- 
+  public function restab_pagodevol($fecha)
+   {
+ 	    $sql = "UPDATE facturasprov SET idpagodevol = '0'   WHERE fecha = ".$this->var2str($fecha).";";
+           if( $this->db->exec($sql) )
+            {
+               $this->idfactura = $this->db->lastval();
+               return TRUE;
+            }
+            else
+               return FALSE; 
+ 	}
  
      public function boton_restab_anulada($idfactura)
    {

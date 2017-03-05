@@ -248,8 +248,8 @@ class libro_mayor_generar extends fs_controller
 			 $this->mes = substr($this->subcuenta->get_partidas_mes($this->offset),5,2);
 			 $this->periodo = $this->subcuenta->get_nom_mes($this->mes).'  '.$this->ejercicio->codejercicio;
 			
-			 
-			 $this->periodo_seleccionado = $this->subcuenta->get_partidas_libros($this->mes,$this->offset);
+			 $this->periodo_seleccionado = $this->subcuenta->get_partidas_libros_nomayor($this->offset);
+//			 $this->periodo_seleccionado = $this->subcuenta->get_partidas_libros($this->mes,$this->offset);
 			 $this->count_periodo_selecc = count($this->subcuenta->get_partidas_libros_total($this->mes));
 			 $this->periodo_generado = $this->subcuenta->get_partidas_libros_ver($this->mes,$this->offset);
 			 

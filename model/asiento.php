@@ -168,10 +168,7 @@ class asiento extends fs_model
       else
          return FALSE;
    }
-
-    /**
-     * @return partida[]
-     */
+   
    public function get_partidas()
    {
       $partida = new partida();
@@ -665,11 +662,6 @@ class asiento extends fs_model
 				$importe_partida = new partida();
 				$importe = $importe_partida->get_idasiento($array_sum_importe[0]['idasiento']);
 
-            if($importe && is_array($importe)) {
-                foreach($importe as $ext) {
-                    $sum_importe = $sum_importe + $ext['debe'];
-                }
-            }
 
 				foreach($importe as $ext)
      			{
@@ -749,6 +741,9 @@ class asiento extends fs_model
 		$valor = new valores();
 		$data = $recibo->get_por_idasiento($this->idasiento);	
  
+ 		//////  pone en 0 idpagodevol en facturaprov
+		if($this->tipodocumento == 'Egreso proveedor')
+		$fact_prov->restab_pagodevol($this->fecha);
 		/////  pone en proceso la orden		
 				
 		foreach($data as $d)

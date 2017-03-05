@@ -68,14 +68,11 @@
                      <a href="#"><s>Libro de inventarios y balances</s></a>
                      {/if}
                   </div>
-                  <div class="col-sm-3">
-                     <a href="{$fsc->url()}&balance=pyg&eje={$value->codejercicio}" target="_blank">
-                        <span class="glyphicon glyphicon-book" aria-hidden="true"></span> Balance de pérdidas y ganancias
-                     </a>
-                  </div>
-                  <div class="col-sm-3">
-                     <a href="{$fsc->url()}&balance=sit&eje={$value->codejercicio}" target="_blank">
-                        <span class="glyphicon glyphicon-book" aria-hidden="true"></span> Balance de situación
+ 
+               </div>
+			   <div class="col-sm-3">
+                     <a href="{$fsc->url()}&plan=1&eje={$value->codejercicio}" target="_blank">
+                        <span class="glyphicon glyphicon-book" aria-hidden="true"></span> Plan de Cuentas
                      </a>
                   </div>
                </div>
@@ -311,4 +308,3 @@
    
    </script>
 
-{include="footer"}

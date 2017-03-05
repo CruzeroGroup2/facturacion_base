@@ -208,6 +208,12 @@ class subcuenta extends fs_model
       return $part->libro_subcuenta($this->idsubcuenta,$mes,$saldo_ant, $offset);
    }
    
+      public function get_partidas_libros_nomayor($offset=0)
+   {
+      $part = new partida();
+	  $saldo_ant = $this->get_partidas_saldo_anterior();
+      return $part->libro_subcuenta_nomayor($this->idsubcuenta,$saldo_ant, $offset);
+   }
       public function get_partidas_libros_total($mes)
    {
       $part = new partida();
@@ -306,16 +312,6 @@ class subcuenta extends fs_model
 				break;					
 					}
 		return $tipo;			
-   }
-
-    /**
-     * @param $cod
-     * @param $ejercicio
-     * @return subcuenta
-     */
-   public static function fetch($cod, $ejercicio) {
-       $subc = new self();
-       return $subc->get_by_codigo($cod, $ejercicio, false);
    }
    
    public function get($id)
